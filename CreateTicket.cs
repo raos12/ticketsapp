@@ -35,22 +35,31 @@ public class CreateTicket
 
         var request = message.Body.ToObjectFromJson<TicketRequest>();
         var ticket = new Ticket(message.MessageId, request.Title, request.Description, request.Priority);
-        var cosmosDBClient = new CosmosClient(cosmosDbAccount, cosmosDbKey);
-        
-        try{
-            var searchResponse = await cosmosDBClient.GetDatabase(cosmosDatabaseName)
-                .GetContainer(cosmosDbContainer).ReadItemAsync<Ticket>(message.MessageId, new PartitionKey(message.MessageId));
+        var cosmosDBClient = new CosmosClient(cosmosDbConnectionString);
+        var container = cosmosDBClient.GetDatabase(cosmosDatabaseName)
+                .GetContainer(cosmosDbContainer);
+        try 
+        {
+            var searchResponse = await container
+                .ReadItemAsync<Ticket>(message.MessageId, new PartitionKey(message.MessageId), new ItemRequestOptions{ });
 
             if (searchResponse != null && searchResponse.Resource != null)
             {
                 _logger.LogInformation("Message already processed...");
 
-                // Complete the message
+                // Complete the message & return.
                 await messageActions.CompleteMessageAsync(message);
+                return;
             }
-            
-            await cosmosDBClient.GetDatabase(cosmosDatabaseName)
-                .GetContainer(cosmosDbContainer)
+        }
+        catch (Exception e) when (e is CosmosException cosmosException && cosmosException.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _logger.LogInformation("Item does not exist... inserting now...");
+        }
+
+        try
+        {
+            await container
                 .CreateItemAsync(ticket, cancellationToken: new CancellationTokenSource(5000).Token);
             
             _logger.LogInformation("Function completed...");

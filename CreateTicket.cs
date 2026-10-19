@@ -24,6 +24,7 @@ public class CreateTicket
         _logger.LogInformation("Message ID: {id}", message.MessageId);
         _logger.LogInformation("Message Body: {body}", message.Body);
         _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
+        _logger.LogInformation("Function completed...");
 
         // Complete the message
         await messageActions.CompleteMessageAsync(message);

@@ -17,7 +17,7 @@ public class CreateTicket
 
     [Function(nameof(CreateTicket))]
     public async Task Run(
-        [ServiceBusTrigger("create-ticket", Connection = "manage-tickets")]
+        [ServiceBusTrigger("create-ticket", Connection = "manage_tickets")]
         ServiceBusReceivedMessage message,
         ServiceBusMessageActions messageActions)
     {

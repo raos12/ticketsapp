@@ -48,6 +48,7 @@ public class CreateTicket
         catch (Exception e)
         {
             _logger.LogError(e, "Error saving data.");
+            _logger.LogInformation(e.Message);
             await messageActions.AbandonMessageAsync(message);
         }      
     }

@@ -38,6 +38,17 @@ public class CreateTicket
         var cosmosDBClient = new CosmosClient(cosmosDbAccount, cosmosDbKey);
         
         try{
+            var searchResponse = await cosmosDBClient.GetDatabase(cosmosDatabaseName)
+                .GetContainer(cosmosDbContainer).ReadItemAsync<Ticket>(message.MessageId, new PartitionKey(message.MessageId));
+
+            if (searchResponse != null && searchResponse.Resource != null)
+            {
+                _logger.LogInformation("Message already processed...");
+
+                // Complete the message
+                await messageActions.CompleteMessageAsync(message);
+            }
+            
             await cosmosDBClient.GetDatabase(cosmosDatabaseName)
                 .GetContainer(cosmosDbContainer)
                 .CreateItemAsync(ticket, cancellationToken: new CancellationTokenSource(5000).Token);

@@ -28,12 +28,14 @@ public class CreateTicket
         _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
 
         var cosmosDbConnectionString = Environment.GetEnvironmentVariable("COSMOSDB_CONNECTION_STRING");
+        var cosmosDbAccount = Environment.GetEnvironmentVariable("COSMOSDB_ACCOUNT");
+        var cosmosDbKey = Environment.GetEnvironmentVariable("COSMOSDB_KEY");
         var cosmosDatabaseName = Environment.GetEnvironmentVariable("COSMOSDB_DATABASE");
         var cosmosDbContainer = Environment.GetEnvironmentVariable("COSMOSDB_CONTAINER");
 
         var request = message.Body.ToObjectFromJson<TicketRequest>();
         var ticket = new Ticket(message.MessageId, request.Title, request.Description, request.Priority);
-        var cosmosDBClient = new CosmosClient(cosmosDbConnectionString);
+        var cosmosDBClient = new CosmosClient(cosmosDbAccount, cosmosDbKey);
         
         try{
             await cosmosDBClient.GetDatabase(cosmosDatabaseName)
